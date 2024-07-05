@@ -1,0 +1,32 @@
+version: "3"
+
+env:
+  COMPILER: /usr/bin/clang++
+  WARN_FLAGS: -Wall -fsanitize=address
+
+tasks:
+  default:
+    - task: build
+    - task: run
+
+  build-debug:
+    cmds:
+      - cmake -S . -B build -DCMAKE_CXX_COMPILER="${COMPILER}" -DCMAKE_CXX_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="${WARN_FLAGS}"
+      - cmake --build build
+
+  build:
+    cmds:
+      - cmake -S . -B build -DCMAKE_CXX_COMPILER="${COMPILER}" -DCMAKE_CXX_FLAGS="-O3"
+      - cmake --build build
+
+  run:
+    cmds:
+      - ./build/rb-tree-test.out
+
+  run-valgrind:
+    cmds:
+      - valgrind --leak-check=full --show-leak-kinds=all ./build/rb-tree-test.out
+
+  run-gdb:
+    cmds:
+      - gdb ./build/rb-tree-test.out
