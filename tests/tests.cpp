@@ -46,17 +46,17 @@ unsigned int lg2(unsigned int a)
     return r;
 }
 
+/**
+ * Note: the pseudorandom generator starts producing repeated keys
+ * if STRESS_TEST_SAMPLE_COUNT > 100,000, which invalidate some of
+ * the unit tests.
+ */
+
 // Stress test parameters
 constexpr unsigned int STRESS_TEST_SAMPLE_COUNT = 100000;
 constexpr unsigned int STRESS_TEST_STRIDING = 293;
 constexpr unsigned int RAND_GEN_SEED = 1;
 const unsigned int STRESS_TEST_LG2 = lg2(STRESS_TEST_SAMPLE_COUNT);
-
-/**
- * Note: the pseudorandom generator starts producing repeated keys
- * if STRESS_TEST_SAMPLE_COUN > 100,000, which invalidate some of
- * the unit tests.
- */
 
 /**
  * Tree operations: search, insert, delete, copy tree
@@ -68,6 +68,13 @@ TEST(RBTreeOperations, EmptyTree)
     EXPECT_TRUE(tree.empty());
     EXPECT_EQ(tree.size(), 0);
     EXPECT_THROW(tree.at(1), std::out_of_range);
+    EXPECT_THROW(tree.erase(1), std::out_of_range);
+    EXPECT_THROW(tree.rankSelect(1), std::out_of_range);
+
+    auto toString = [](int k)
+    { return std::to_string(k); };
+    EXPECT_THROW(tree.serialize(toString), std::out_of_range);
+    EXPECT_EQ(tree.depth(), 0);
 }
 
 TEST(RBTreeOperations, Insert7Integers)
@@ -325,11 +332,13 @@ TEST(RBTreeOperations, MixedOperationsDoubleDouble)
 
 TEST(RBTreeOperations, MixedOperationsStringInt)
 {
-    auto comparator = [](const std::string &a, const std::string &b)
-    { return a < b; };
+    struct Comparator
+    {
+        // Lexicographic comparison
+        bool operator()(const std::string &lhs, const std::string &rhs) const { return lhs < rhs; }
+    };
 
-    // Use decltype to get type of expression
-    RedBlackTree<std::string, int, decltype(comparator)> tree(comparator);
+    RedBlackTree<std::string, int, Comparator> tree;
 
     for (int i = 0; i < 20; ++i)
         tree["key" + std::to_string(i)] = i;

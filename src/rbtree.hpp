@@ -85,8 +85,6 @@ public:
 
     RedBlackTree();
     RedBlackTree(const std::initializer_list<std::pair<key_t, value_t>> &init);
-    RedBlackTree(const Compare &comp);
-    RedBlackTree(const Compare &comp, const std::initializer_list<std::pair<key_t, value_t>> &init);
     RedBlackTree(const RedBlackTree &that); // Deep copy
 
     /**

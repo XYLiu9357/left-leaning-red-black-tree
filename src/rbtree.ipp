@@ -44,18 +44,6 @@ RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const std::initializer_list<
 }
 
 template <typename key_t, typename value_t, typename Compare>
-RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const Compare &comp)
-    : root(nullptr), comparator(comp) {}
-
-template <typename key_t, typename value_t, typename Compare>
-RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const Compare &comp, const std::initializer_list<std::pair<key_t, value_t>> &init)
-    : root(nullptr), comparator(comp)
-{
-    for (std::pair<key_t, value_t> pair : init)
-        insert(pair);
-}
-
-template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::copyTree(TreeNode const *node)
 {
     if (node == nullptr)
@@ -115,6 +103,7 @@ bool RedBlackTree<key_t, value_t, Compare>::treeEqual(TreeNode *node1, TreeNode 
     bool nodeEquality = node1->p == node2->p && node1->sz == node2->sz && node1->color == node2->color;
     return nodeEquality && treeEqual(node1->left, node2->left) && treeEqual(node1->right, node2->right);
 }
+
 template <typename key_t, typename value_t, typename Compare>
 RedBlackTree<key_t, value_t, Compare> &RedBlackTree<key_t, value_t, Compare>::operator=(const RedBlackTree &that)
 {
@@ -731,7 +720,7 @@ template <typename key_t, typename value_t, typename Compare>
 size_t RedBlackTree<key_t, value_t, Compare>::depth() const
 {
     if (empty())
-        throw std::out_of_range("Invalid depth query with empty container");
+        return 0;
 
     std::deque<TreeNode *> nodeQueue;
     std::deque<size_t> depthQueue;

@@ -6,7 +6,7 @@ env:
 
 tasks:
   default:
-    - task: build-debug
+    - task: build
     - task: run
 
   build-debug:
