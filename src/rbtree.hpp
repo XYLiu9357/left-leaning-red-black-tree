@@ -7,8 +7,8 @@
 #define RBTREE_H
 
 #include <cstdint>
+#include <deque>
 #include <string>
-#include <vector>
 #include <initializer_list>
 #include <functional>
 #include <utility>
@@ -29,9 +29,6 @@ private:
     class TreeNode
     {
     public:
-        // Static keyword in nested class. Is it static for just the inner
-        // class or static for both classes.
-        static TreeNode *NIL;
         const static bool RED = true;
         const static bool BLACK = false;
 
@@ -42,7 +39,7 @@ private:
         bool color;
 
         TreeNode(std::pair<key_t, value_t> pair, bool c)
-            : p(pair), left(NIL), right(NIL), sz(1), color(c) {}
+            : p(pair), left(nullptr), right(nullptr), sz(1), color(c) {}
     };
 
     // Tree attributes
@@ -57,14 +54,11 @@ private:
     // Recursive deep copy
     TreeNode *copyTree(TreeNode const *node);
 
-    // Tree rotation
+    // Tree rotation & coloring
+    bool isRed(TreeNode *node);
     TreeNode *rotateLeft(TreeNode *node);
     TreeNode *rotateRight(TreeNode *node);
-
-    // Modify coloring
-    TreeNode *leanLeft(TreeNode *node);
-    TreeNode *leanRight(TreeNode *node);
-    void flipColor(TreeNode *node);
+    void flipColors(TreeNode *node);
 
     // Fixup during insertion
     TreeNode *rbFix(TreeNode *node);
@@ -93,7 +87,7 @@ public:
     RedBlackTree(const std::initializer_list<std::pair<key_t, value_t>> &init);
     RedBlackTree(const Compare &comp);
     RedBlackTree(const Compare &comp, const std::initializer_list<std::pair<key_t, value_t>> &init);
-    RedBlackTree(const RedBlackTree &that);
+    RedBlackTree(const RedBlackTree &that); // Deep copy
 
     /**
      * Utilities
@@ -101,6 +95,8 @@ public:
 
     size_t size() const;
     bool empty() const;
+
+    RedBlackTree &operator=(const RedBlackTree &that); // Deep copy
     bool operator==(const RedBlackTree &that) const;
     bool operator!=(const RedBlackTree &that) const;
 
@@ -113,7 +109,7 @@ public:
     bool contains(const key_t &key) const;
 
     /**
-     * Symbol table operations
+     * Ordered symbol table operations
      */
 
     int rank(const key_t &key) const;
@@ -123,12 +119,6 @@ public:
     key_t floor(const key_t &key);
     key_t ceiling(const key_t &key);
     key_t rankSelect(int rank);
-
-    /**
-     * Range search
-     */
-    std::vector<key_t> keys();                                    // TODO
-    std::vector<key_t> keys(const key_t &low, const key_t &high); // TODO
 
     /**
      * Insertion
@@ -156,6 +146,29 @@ public:
 
     void _deleteTree(TreeNode *node);
     ~RedBlackTree();
+
+    /**
+     * Iterator
+     */
+private:
+    class Iterator
+    {
+    private:
+        TreeNode *cur;
+        std::deque<TreeNode *> nodeStack;
+
+    public:
+        Iterator();
+        key_t &operator*();
+        bool operator==(iterator that);
+        bool operator!=(iterator that);
+        void operator++();
+    };
+
+public:
+    Iterator begin();
+    Iterator end();
+    Iterator find(key_t key);
 };
 
 #include "rbtree.ipp"

@@ -2,16 +2,16 @@ version: "3"
 
 env:
   COMPILER: /usr/bin/clang++
-  WARN_FLAGS: -Wall -fsanitize=address
+  DEBUG_FLAGS: -g -Wall -fsanitize=address
 
 tasks:
   default:
-    - task: build
+    - task: build-debug
     - task: run
 
   build-debug:
     cmds:
-      - cmake -S . -B build -DCMAKE_CXX_COMPILER="${COMPILER}" -DCMAKE_CXX_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="${WARN_FLAGS}"
+      - cmake -S . -B build -DCMAKE_CXX_COMPILER="${COMPILER}" -DCMAKE_CXX_FLAGS="${DEBUG_FLAGS}"
       - cmake --build build
 
   build:

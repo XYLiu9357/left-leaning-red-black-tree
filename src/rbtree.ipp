@@ -3,8 +3,10 @@
  * Implementation of the left-leaning red black tree template class.
  */
 
+#ifndef RBTREE_I
+#define RBTREE_I
+
 #include <cstdint>
-#include <vector>
 #include <deque>
 #include <functional>
 #include <initializer_list>
@@ -12,10 +14,6 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-
-// Define NIL node
-template <typename key_t, typename value_t, typename Compare>
-typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::TreeNode::NIL = nullptr;
 
 // Custom comparator
 template <typename key_t, typename value_t, typename Compare>
@@ -35,77 +33,24 @@ typename RedBlackTree<key_t, value_t, Compare>::ComparisonResult RedBlackTree<ke
 
 template <typename key_t, typename value_t, typename Compare>
 RedBlackTree<key_t, value_t, Compare>::RedBlackTree()
-    : comparator(Compare())
-{
-    if (TreeNode::NIL == nullptr)
-    {
-        // Construct NIL node
-        TreeNode::NIL = new TreeNode(std::pair<key_t, value_t>{key_t{}, value_t{}}, TreeNode::BLACK);
-        if (!TreeNode::NIL)
-            throw std::bad_alloc();
+    : root(nullptr), comparator(Compare()) {}
 
-        TreeNode::NIL->left = TreeNode::NIL;
-        TreeNode::NIL->right = TreeNode::NIL;
-        TreeNode::NIL->sz = 0;
-    }
-
-    root = TreeNode::NIL;
-}
 template <typename key_t, typename value_t, typename Compare>
 RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const std::initializer_list<std::pair<key_t, value_t>> &init)
+    : root(nullptr), comparator(Compare())
 {
-    if (TreeNode::NIL == nullptr)
-    {
-        // Construct NIL node
-        TreeNode::NIL = new TreeNode(std::pair<key_t, value_t>{key_t{}, value_t{}}, TreeNode::BLACK);
-        if (!TreeNode::NIL)
-            throw std::bad_alloc();
-        TreeNode::NIL->left = TreeNode::NIL;
-        TreeNode::NIL->right = TreeNode::NIL;
-        TreeNode::NIL->sz = 0;
-    }
-
-    root = TreeNode::NIL;
     for (std::pair<key_t, value_t> pair : init)
         insert(pair);
 }
 
 template <typename key_t, typename value_t, typename Compare>
 RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const Compare &comp)
-    : comparator(comp)
-{
-    if (TreeNode::NIL == nullptr)
-    {
-        // Construct NIL node
-        TreeNode::NIL = new TreeNode(std::pair<key_t, value_t>{key_t{}, value_t{}}, TreeNode::BLACK);
-        if (!TreeNode::NIL)
-            throw std::bad_alloc();
-
-        TreeNode::NIL->left = TreeNode::NIL;
-        TreeNode::NIL->right = TreeNode::NIL;
-        TreeNode::NIL->sz = 0;
-    }
-
-    root = TreeNode::NIL;
-}
+    : root(nullptr), comparator(comp) {}
 
 template <typename key_t, typename value_t, typename Compare>
 RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const Compare &comp, const std::initializer_list<std::pair<key_t, value_t>> &init)
-    : comparator(comp)
+    : root(nullptr), comparator(comp)
 {
-    if (TreeNode::NIL == nullptr)
-    {
-        // Construct NIL node
-        TreeNode::NIL = new TreeNode(std::pair<key_t, value_t>{key_t{}, value_t{}}, TreeNode::BLACK);
-        if (!TreeNode::NIL)
-            throw std::bad_alloc();
-
-        TreeNode::NIL->left = TreeNode::NIL;
-        TreeNode::NIL->right = TreeNode::NIL;
-        TreeNode::NIL->sz = 0;
-    }
-
-    root = TreeNode::NIL;
     for (std::pair<key_t, value_t> pair : init)
         insert(pair);
 }
@@ -113,19 +58,23 @@ RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const Compare &comp, const s
 template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::copyTree(TreeNode const *node)
 {
-    TreeNode *curNode = new TreeNode(node->p, node->color);
+    if (node == nullptr)
+        return nullptr;
+
+    // Deep copy if a copy constructor is specified
+    key_t keyCopy = node->p.first;
+    value_t valCopy = node->p.second;
+
+    TreeNode *curNode = new TreeNode(std::pair<key_t, value_t>(keyCopy, valCopy), node->color);
     curNode->sz = node->sz;
-    curNode->left = (node->left == TreeNode::NIL) ? TreeNode::NIL : copyTree(node->left);
-    curNode->right = (node->right == TreeNode::NIL) ? TreeNode::NIL : copyTree(node->right);
+    curNode->left = copyTree(node->left);
+    curNode->right = copyTree(node->right);
     return curNode;
 }
 
 template <typename key_t, typename value_t, typename Compare>
 RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const RedBlackTree &that)
 {
-    if (that.empty())
-        return TreeNode::NIL;
-
     TreeNode *newRoot = copyTree(that.root);
     this->root = newRoot;
     this->comparator = that.comparator;
@@ -138,13 +87,13 @@ RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const RedBlackTree &that)
 template <typename key_t, typename value_t, typename Compare>
 bool RedBlackTree<key_t, value_t, Compare>::empty() const
 {
-    return root == TreeNode::NIL;
+    return root == nullptr;
 }
 
 template <typename key_t, typename value_t, typename Compare>
 size_t RedBlackTree<key_t, value_t, Compare>::nodeSize(TreeNode *node) const
 {
-    return node == TreeNode::NIL ? 0 : node->sz;
+    return node == nullptr ? 0 : node->sz;
 }
 
 template <typename key_t, typename value_t, typename Compare>
@@ -156,15 +105,25 @@ size_t RedBlackTree<key_t, value_t, Compare>::size() const
 template <typename key_t, typename value_t, typename Compare>
 bool RedBlackTree<key_t, value_t, Compare>::treeEqual(TreeNode *node1, TreeNode *node2) const
 {
-    if (node1 == TreeNode::NIL && node2 == TreeNode::NIL)
+    if (node1 == nullptr && node2 == nullptr)
         return true;
-    else if (node1 == TreeNode::NIL)
+    else if (node1 == nullptr)
         return false;
-    else if (node2 == TreeNode::NIL)
+    else if (node2 == nullptr)
         return false;
 
     bool nodeEquality = node1->p == node2->p && node1->sz == node2->sz && node1->color == node2->color;
     return nodeEquality && treeEqual(node1->left, node2->left) && treeEqual(node1->right, node2->right);
+}
+template <typename key_t, typename value_t, typename Compare>
+typename RedBlackTree<key_t, value_t, Compare>::RedBlackTree &RedBlackTree<key_t, value_t, Compare>::operator=(const RedBlackTree &that)
+{
+    // Copy and swap
+    RedBlackTree<key_t, value_t> temp(that);
+    std::swap(this->root, temp.root);
+    std::swap(this->comparator, temp.comparator);
+
+    return *this;
 }
 
 template <typename key_t, typename value_t, typename Compare>
@@ -186,8 +145,8 @@ bool RedBlackTree<key_t, value_t, Compare>::operator!=(const RedBlackTree &that)
 template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::_at(TreeNode *node, const key_t &key) const
 {
-    if (node == TreeNode::NIL)
-        return TreeNode::NIL;
+    if (node == nullptr)
+        return nullptr;
 
     if (comp(key, node->p.first) == LESS_THAN)
         return _at(node->left, key);
@@ -204,7 +163,7 @@ value_t RedBlackTree<key_t, value_t, Compare>::at(const key_t &key) const
         throw std::out_of_range("Invalid search in empty container");
 
     TreeNode *queryNode = _at(root, key);
-    if (queryNode == TreeNode::NIL)
+    if (queryNode == nullptr)
         throw std::out_of_range("Query key not found");
 
     value_t queryValue = queryNode->p.second;
@@ -218,7 +177,7 @@ const value_t &RedBlackTree<key_t, value_t, Compare>::operator[](const key_t &ke
         throw std::out_of_range("Invalid search in empty container");
 
     TreeNode *queryNode = _at(root, key);
-    if (queryNode == TreeNode::NIL)
+    if (queryNode == nullptr)
         throw std::out_of_range("Query key not found");
 
     const value_t &queryRef = queryNode->p.second;
@@ -229,17 +188,17 @@ template <typename key_t, typename value_t, typename Compare>
 bool RedBlackTree<key_t, value_t, Compare>::contains(const key_t &key) const
 {
     TreeNode *queryNode = _at(root, key);
-    return queryNode != TreeNode::NIL;
+    return queryNode != nullptr;
 }
 
 /**
- * Symbol table operations
+ * Ordered symbol table operations
  */
 
 template <typename key_t, typename value_t, typename Compare>
 int RedBlackTree<key_t, value_t, Compare>::_rank(TreeNode *node, const key_t &key) const
 {
-    if (node == TreeNode::NIL)
+    if (node == nullptr)
         return 0;
 
     ComparisonResult cmp = comp(key, node->p.first);
@@ -266,7 +225,7 @@ key_t RedBlackTree<key_t, value_t, Compare>::min() const
         throw std::out_of_range("Invalid call to min() with empty container");
 
     TreeNode *cur = root;
-    while (cur->left != TreeNode::NIL)
+    while (cur->left != nullptr)
         cur = cur->left;
 
     return cur->p.first;
@@ -279,7 +238,7 @@ key_t RedBlackTree<key_t, value_t, Compare>::max() const
         throw std::out_of_range("Invalid call to max() with empty container");
 
     TreeNode *cur = root;
-    while (cur->right != TreeNode::NIL)
+    while (cur->right != nullptr)
         cur = cur->right;
 
     return cur->p.first;
@@ -288,8 +247,8 @@ key_t RedBlackTree<key_t, value_t, Compare>::max() const
 template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::_floor(TreeNode *node, const key_t &key) const
 {
-    if (node == TreeNode::NIL)
-        return node;
+    if (node == nullptr)
+        return nullptr;
 
     ComparisonResult cmp = comp(key, node->p.first);
     if (cmp == EQUAL_TO)
@@ -299,7 +258,7 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
 
     // Query key is greater than node->key
     TreeNode *rightFloor = _floor(node->right, key);
-    if (rightFloor == TreeNode::NIL)
+    if (rightFloor == nullptr)
         return node;
     else
         return rightFloor;
@@ -312,7 +271,7 @@ key_t RedBlackTree<key_t, value_t, Compare>::floor(const key_t &key)
         throw std::out_of_range("Invalid call to floor() with empty container");
 
     TreeNode *queryNode = _floor(root, key);
-    if (queryNode == TreeNode::NIL)
+    if (queryNode == nullptr)
         throw std::out_of_range("Argument to floor() is too small");
     else
         return queryNode->p.first;
@@ -321,7 +280,7 @@ key_t RedBlackTree<key_t, value_t, Compare>::floor(const key_t &key)
 template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::_ceiling(TreeNode *node, const key_t &key) const
 {
-    if (node == TreeNode::NIL)
+    if (node == nullptr)
         return node;
 
     ComparisonResult cmp = comp(key, node->p.first);
@@ -332,7 +291,7 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
 
     // Query key is less than node->key
     TreeNode *leftCeiling = _ceiling(node->left, key);
-    if (leftCeiling == TreeNode::NIL)
+    if (leftCeiling == nullptr)
         return node;
     else
         return leftCeiling;
@@ -345,7 +304,7 @@ key_t RedBlackTree<key_t, value_t, Compare>::ceiling(const key_t &key)
         throw std::out_of_range("Invalid call to ceiling() with empty container");
 
     TreeNode *queryNode = _ceiling(root, key);
-    if (queryNode == TreeNode::NIL)
+    if (queryNode == nullptr)
         throw std::out_of_range("Argument to ceiling() is too large");
     else
         return queryNode->p.first;
@@ -354,10 +313,10 @@ key_t RedBlackTree<key_t, value_t, Compare>::ceiling(const key_t &key)
 template <typename key_t, typename value_t, typename Compare>
 const key_t &RedBlackTree<key_t, value_t, Compare>::_rankSelect(TreeNode *node, int rank) const
 {
-    if (node == TreeNode::NIL)
+    if (node == nullptr)
         throw std::logic_error("Rank select did not find key matching query rank");
 
-    size_t leftSize = node->left->sz;
+    size_t leftSize = nodeSize(node->left);
     if (rank < leftSize)
         return _rankSelect(node->left, rank);
     else if (rank > leftSize)
@@ -379,28 +338,29 @@ key_t RedBlackTree<key_t, value_t, Compare>::rankSelect(int rank)
 }
 
 /**
- * Range search
- */
-
-std::vector<key_t> keys()
-{
-}
-
-std::vector<key_t> keys(const key_t &low, const key_t &high)
-{
-}
-
-/**
  * Red-black scheme helpers
  */
 
-// Tree rotation
+// Tree rotation & coloring
+template <typename key_t, typename value_t, typename Compare>
+bool RedBlackTree<key_t, value_t, Compare>::isRed(TreeNode *node)
+{
+    if (node == nullptr)
+        return TreeNode::BLACK;
+    else
+        return node->color;
+}
+
 template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::rotateLeft(TreeNode *node)
 {
     TreeNode *newNode = node->right;
     node->right = newNode->left;
     newNode->left = node;
+
+    // Enforce color
+    newNode->color = newNode->left->color;
+    newNode->left->color = TreeNode::RED;
 
     // Size update
     newNode->sz = node->sz;
@@ -415,33 +375,18 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
     node->left = newNode->right;
     newNode->right = node;
 
+    // Enforce color
+    newNode->color = newNode->right->color;
+    newNode->right->color = TreeNode::RED;
+
     // Size update
     newNode->sz = node->sz;
     node->sz = 1 + nodeSize(node->left) + nodeSize(node->right);
     return newNode;
 }
 
-// Modify coloring
 template <typename key_t, typename value_t, typename Compare>
-typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::leanLeft(TreeNode *node)
-{
-    TreeNode *newNode = rotateLeft(node);
-    newNode->color = newNode->left->color;
-    newNode->left->color = TreeNode::RED;
-    return newNode;
-}
-
-template <typename key_t, typename value_t, typename Compare>
-typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::leanRight(TreeNode *node)
-{
-    TreeNode *newNode = rotateRight(node);
-    newNode->color = newNode->right->color;
-    newNode->right->color = TreeNode::RED;
-    return newNode;
-}
-
-template <typename key_t, typename value_t, typename Compare>
-void RedBlackTree<key_t, value_t, Compare>::flipColor(TreeNode *node)
+void RedBlackTree<key_t, value_t, Compare>::flipColors(TreeNode *node)
 {
     node->color = !node->color;
     node->left->color = !node->left->color;
@@ -452,12 +397,12 @@ void RedBlackTree<key_t, value_t, Compare>::flipColor(TreeNode *node)
 template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::rbFix(TreeNode *node)
 {
-    if (node->right->color == TreeNode::RED && node->left->color == TreeNode::BLACK)
-        node = leanLeft(node);
-    if (node->left->color == TreeNode::RED && node->left->left->color == TreeNode::RED)
-        node = leanRight(node);
-    if (node->left->color == TreeNode::RED && node->right->color == TreeNode::RED)
-        flipColor(node);
+    if (isRed(node->right) && !isRed(node->left))
+        node = rotateLeft(node);
+    if (isRed(node->left) && isRed(node->left->left))
+        node = rotateRight(node);
+    if (isRed(node->left) && isRed(node->right))
+        flipColors(node);
 
     node->sz = 1 + nodeSize(node->left) + nodeSize(node->right);
     return node;
@@ -467,12 +412,12 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
 template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::moveRedLeft(TreeNode *node)
 {
-    flipColor(node);
-    if (node->right->left->color == TreeNode::RED)
+    flipColors(node);
+    if (isRed(node->right->left))
     {
-        node->right = leanRight(node->right);
-        node = leanLeft(node);
-        flipColor(node);
+        node->right = rotateRight(node->right);
+        node = rotateLeft(node);
+        flipColors(node);
     }
 
     return node;
@@ -481,11 +426,11 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
 template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::moveRedRight(TreeNode *node)
 {
-    flipColor(node);
-    if (node->left->left->color == TreeNode::RED)
+    flipColors(node);
+    if (isRed(node->left->left))
     {
-        node = leanRight(node);
-        flipColor(node);
+        node = rotateRight(node);
+        flipColors(node);
     }
 
     return node;
@@ -499,7 +444,7 @@ template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::_insert(TreeNode *node, const std::pair<key_t, value_t> &pair)
 {
     // Recursive insertion
-    if (node == TreeNode::NIL)
+    if (node == nullptr)
     {
         TreeNode *newNode = new TreeNode(pair, TreeNode::RED);
         if (!newNode)
@@ -533,7 +478,7 @@ template <typename key_t, typename value_t, typename Compare>
 value_t &RedBlackTree<key_t, value_t, Compare>::operator[](const key_t &key)
 {
     TreeNode *queryNode = _at(root, key);
-    if (queryNode == TreeNode::NIL)
+    if (queryNode == nullptr)
     {
         root = _insert(root, {key, value_t{}});
         queryNode = _at(root, key);
@@ -550,14 +495,14 @@ value_t &RedBlackTree<key_t, value_t, Compare>::operator[](const key_t &key)
 template <typename key_t, typename value_t, typename Compare>
 typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::_eraseMin(TreeNode *node)
 {
-    if (node->left == TreeNode::NIL)
+    if (node->left == nullptr)
     {
         delete node;
-        return TreeNode::NIL;
+        return nullptr;
     }
 
     // Fix 2-node if necessary
-    if (node->left->color == TreeNode::BLACK && node->left->left->color == TreeNode::BLACK)
+    if (!isRed(node->left) && !isRed(node->left->left))
         node = moveRedLeft(node);
 
     node->left = _eraseMin(node->left);
@@ -572,25 +517,25 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
     if (comp(key, node->p.first) == LESS_THAN)
     {
         // Push red link right if 2-node
-        if (node->left->color == TreeNode::BLACK && node->left->left->color == TreeNode::BLACK)
+        if (!isRed(node->left) && !isRed(node->left->left))
             node = moveRedLeft(node);
 
         node->left = _erase(node->left, key);
     }
     else
     {
-        if (node->left->color == TreeNode::RED)
-            node = leanRight(node);
+        if (isRed(node->left))
+            node = rotateRight(node);
 
         // Simple case: leaf node deletion
-        if (comp(key, node->p.first) == EQUAL_TO && node->right == TreeNode::NIL)
+        if (comp(key, node->p.first) == EQUAL_TO && node->right == nullptr)
         {
             delete node;
-            return TreeNode::NIL;
+            return nullptr;
         }
 
-        // Push red right if two node
-        if (node->right->color == TreeNode::BLACK && node->right->left->color == TreeNode::BLACK)
+        // Push red right if two black nodes
+        if (!isRed(node->right) && !isRed(node->right->left))
             node = moveRedRight(node);
 
         // Complex case: branch node deletion
@@ -599,7 +544,7 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
             auto subtreeMin = [](TreeNode *start)
             {
                 TreeNode *cur = start;
-                while (cur->left != TreeNode::NIL)
+                while (cur->left != nullptr)
                     cur = cur->left;
                 return cur->p;
             };
@@ -617,16 +562,18 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
 template <typename key_t, typename value_t, typename Compare>
 void RedBlackTree<key_t, value_t, Compare>::erase(const key_t &key)
 {
-    if (root == TreeNode::NIL)
+    if (root == nullptr)
         throw std::out_of_range("Invalid erase from empty container");
     if (!contains(key))
         throw std::out_of_range("Erase query key not found");
 
-    if (root->left->color == TreeNode::BLACK && root->right->color == TreeNode::BLACK)
+    if (!isRed(root->left) && !isRed(root->right))
         root->color = TreeNode::RED;
 
     root = _erase(root, key);
-    root->color = TreeNode::BLACK;
+
+    if (!empty())
+        root->color = TreeNode::BLACK;
 }
 
 /**
@@ -663,12 +610,12 @@ std::string RedBlackTree<key_t, value_t, Compare>::serialize(const std::function
         curRight = cur->right;
 
         serializedTree += objToString(cur->p.first) + delim;
-        if (curRight != TreeNode::NIL)
+        if (curRight != nullptr)
             nodeStack.push_back(curRight);
-        if (curLeft != TreeNode::NIL)
+        if (curLeft != nullptr)
             nodeStack.push_back(curLeft);
 
-        if (curLeft == TreeNode::NIL && curRight == TreeNode::NIL)
+        if (curLeft == nullptr && curRight == nullptr)
             serializedTree += nilStr;
     }
 
@@ -698,12 +645,12 @@ size_t RedBlackTree<key_t, value_t, Compare>::depth() const
 
         maxDepth = curDepth > maxDepth ? curDepth : maxDepth;
 
-        if (cur->left != TreeNode::NIL)
+        if (cur->left != nullptr)
         {
             nodeQueue.push_back(cur->left);
             depthQueue.push_back(curDepth + 1);
         }
-        if (cur->right != TreeNode::NIL)
+        if (cur->right != nullptr)
         {
             nodeQueue.push_back(cur->right);
             depthQueue.push_back(curDepth + 1);
@@ -719,7 +666,7 @@ size_t RedBlackTree<key_t, value_t, Compare>::depth() const
 template <typename key_t, typename value_t, typename Compare>
 void RedBlackTree<key_t, value_t, Compare>::_deleteTree(TreeNode *node)
 {
-    if (node == TreeNode::NIL)
+    if (node == nullptr)
         return;
 
     _deleteTree(node->left);
@@ -732,3 +679,5 @@ RedBlackTree<key_t, value_t, Compare>::~RedBlackTree()
 {
     _deleteTree(root);
 }
+
+#endif /*RBTREE_I*/
