@@ -27,8 +27,8 @@ Traditional symbol table operations like search, insertion, deletion, order stat
 To use and develop with `RedBlackTree`, ensure that your environment meets the following requirements.
 
 - Basic usage: `C++ 14` compatible compiler (e.g., GCC 5.0 or later, Clang 3.4 or later, MSVC 2015 or later).
-- Compile unit tests: [CMake](https://cmake.org/download/) Version 3.20 or later is required to configure and build the unit tests.
-- Run automated scripts: [Taskfile](https://taskfile.dev/installation/) Version 3 is required to run the automation scripts.
+- Compile unit tests: [CMake](https://cmake.org/download/) version 3.20 or later is required to configure and build the unit tests.
+- Run automated scripts: [Taskfile](https://taskfile.dev/installation/) version 3 is required to run the automation scripts.
 
 Make sure these tools and versions are properly installed and configured in your development environment to fully utilize the features and tests provided by this project.
 
