@@ -4,6 +4,7 @@
  */
 
 #include <cstdint>
+#include <vector>
 #include <deque>
 #include <functional>
 #include <initializer_list>
@@ -18,7 +19,7 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
 
 // Custom comparator
 template <typename key_t, typename value_t, typename Compare>
-ComparisonResult RedBlackTree<key_t, value_t, Compare>::comp(const key_t &k1, const key_t &k2) const
+typename RedBlackTree<key_t, value_t, Compare>::ComparisonResult RedBlackTree<key_t, value_t, Compare>::comp(const key_t &k1, const key_t &k2) const
 {
     if (comparator(k1, k2))
         return LESS_THAN;
@@ -110,13 +111,38 @@ RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const Compare &comp, const s
 }
 
 template <typename key_t, typename value_t, typename Compare>
+typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::copyTree(TreeNode const *node)
+{
+    TreeNode *curNode = new TreeNode(node->p, node->color);
+    curNode->sz = node->sz;
+    curNode->left = (node->left == TreeNode::NIL) ? TreeNode::NIL : copyTree(node->left);
+    curNode->right = (node->right == TreeNode::NIL) ? TreeNode::NIL : copyTree(node->right);
+    return curNode;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+RedBlackTree<key_t, value_t, Compare>::RedBlackTree(const RedBlackTree &that)
+{
+    if (that.empty())
+        return TreeNode::NIL;
+
+    TreeNode *newRoot = copyTree(that.root);
+    this->root = newRoot;
+    this->comparator = that.comparator;
+}
+
+/**
+ * Utilities
+ */
+
+template <typename key_t, typename value_t, typename Compare>
 bool RedBlackTree<key_t, value_t, Compare>::empty() const
 {
     return root == TreeNode::NIL;
 }
 
 template <typename key_t, typename value_t, typename Compare>
-size_t RedBlackTree<key_t, value_t, Compare>::size(TreeNode *node) const
+size_t RedBlackTree<key_t, value_t, Compare>::nodeSize(TreeNode *node) const
 {
     return node == TreeNode::NIL ? 0 : node->sz;
 }
@@ -124,7 +150,33 @@ size_t RedBlackTree<key_t, value_t, Compare>::size(TreeNode *node) const
 template <typename key_t, typename value_t, typename Compare>
 size_t RedBlackTree<key_t, value_t, Compare>::size() const
 {
-    return size(root);
+    return nodeSize(root);
+}
+
+template <typename key_t, typename value_t, typename Compare>
+bool RedBlackTree<key_t, value_t, Compare>::treeEqual(TreeNode *node1, TreeNode *node2) const
+{
+    if (node1 == TreeNode::NIL && node2 == TreeNode::NIL)
+        return true;
+    else if (node1 == TreeNode::NIL)
+        return false;
+    else if (node2 == TreeNode::NIL)
+        return false;
+
+    bool nodeEquality = node1->p == node2->p && node1->sz == node2->sz && node1->color == node2->color;
+    return nodeEquality && treeEqual(node1->left, node2->left) && treeEqual(node1->right, node2->right);
+}
+
+template <typename key_t, typename value_t, typename Compare>
+bool RedBlackTree<key_t, value_t, Compare>::operator==(const RedBlackTree &that) const
+{
+    return treeEqual(this->root, that.root);
+}
+
+template <typename key_t, typename value_t, typename Compare>
+bool RedBlackTree<key_t, value_t, Compare>::operator!=(const RedBlackTree &that) const
+{
+    return !treeEqual(this->root, that.root);
 }
 
 /**
@@ -148,8 +200,10 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
 template <typename key_t, typename value_t, typename Compare>
 value_t RedBlackTree<key_t, value_t, Compare>::at(const key_t &key) const
 {
-    TreeNode *queryNode = _at(root, key);
+    if (empty())
+        throw std::out_of_range("Invalid search in empty container");
 
+    TreeNode *queryNode = _at(root, key);
     if (queryNode == TreeNode::NIL)
         throw std::out_of_range("Query key not found");
 
@@ -160,6 +214,9 @@ value_t RedBlackTree<key_t, value_t, Compare>::at(const key_t &key) const
 template <typename key_t, typename value_t, typename Compare>
 const value_t &RedBlackTree<key_t, value_t, Compare>::operator[](const key_t &key) const
 {
+    if (empty())
+        throw std::out_of_range("Invalid search in empty container");
+
     TreeNode *queryNode = _at(root, key);
     if (queryNode == TreeNode::NIL)
         throw std::out_of_range("Query key not found");
@@ -169,21 +226,168 @@ const value_t &RedBlackTree<key_t, value_t, Compare>::operator[](const key_t &ke
 }
 
 template <typename key_t, typename value_t, typename Compare>
-
 bool RedBlackTree<key_t, value_t, Compare>::contains(const key_t &key) const
 {
     TreeNode *queryNode = _at(root, key);
     return queryNode != TreeNode::NIL;
 }
 
+/**
+ * Symbol table operations
+ */
+
+template <typename key_t, typename value_t, typename Compare>
+int RedBlackTree<key_t, value_t, Compare>::_rank(TreeNode *node, const key_t &key) const
+{
+    if (node == TreeNode::NIL)
+        return 0;
+
+    ComparisonResult cmp = comp(key, node->p.first);
+    if (cmp == LESS_THAN)
+        return _rank(node->left, key);
+    else if (cmp == GREATER_THAN)
+        return nodeSize(node->left) + 1 + _rank(node->right, key);
+    else
+        return nodeSize(node->left);
+}
+
+template <typename key_t, typename value_t, typename Compare>
+int RedBlackTree<key_t, value_t, Compare>::rank(const key_t &key) const
+{
+    if (empty())
+        throw std::out_of_range("Invalid rank query with empty container");
+    return _rank(root, key);
+}
+
 template <typename key_t, typename value_t, typename Compare>
 key_t RedBlackTree<key_t, value_t, Compare>::min() const
 {
+    if (empty())
+        throw std::out_of_range("Invalid call to min() with empty container");
+
     TreeNode *cur = root;
     while (cur->left != TreeNode::NIL)
         cur = cur->left;
 
     return cur->p.first;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+key_t RedBlackTree<key_t, value_t, Compare>::max() const
+{
+    if (empty())
+        throw std::out_of_range("Invalid call to max() with empty container");
+
+    TreeNode *cur = root;
+    while (cur->right != TreeNode::NIL)
+        cur = cur->right;
+
+    return cur->p.first;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::_floor(TreeNode *node, const key_t &key) const
+{
+    if (node == TreeNode::NIL)
+        return node;
+
+    ComparisonResult cmp = comp(key, node->p.first);
+    if (cmp == EQUAL_TO)
+        return node;
+    else if (cmp == LESS_THAN)
+        return _floor(node->left, key);
+
+    // Query key is greater than node->key
+    TreeNode *rightFloor = _floor(node->right, key);
+    if (rightFloor == TreeNode::NIL)
+        return node;
+    else
+        return rightFloor;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+key_t RedBlackTree<key_t, value_t, Compare>::floor(const key_t &key)
+{
+    if (empty())
+        throw std::out_of_range("Invalid call to floor() with empty container");
+
+    TreeNode *queryNode = _floor(root, key);
+    if (queryNode == TreeNode::NIL)
+        throw std::out_of_range("Argument to floor() is too small");
+    else
+        return queryNode->p.first;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, value_t, Compare>::_ceiling(TreeNode *node, const key_t &key) const
+{
+    if (node == TreeNode::NIL)
+        return node;
+
+    ComparisonResult cmp = comp(key, node->p.first);
+    if (cmp == EQUAL_TO)
+        return node;
+    else if (cmp == GREATER_THAN)
+        return _ceiling(node->right, key);
+
+    // Query key is less than node->key
+    TreeNode *leftCeiling = _ceiling(node->left, key);
+    if (leftCeiling == TreeNode::NIL)
+        return node;
+    else
+        return leftCeiling;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+key_t RedBlackTree<key_t, value_t, Compare>::ceiling(const key_t &key)
+{
+    if (empty())
+        throw std::out_of_range("Invalid call to ceiling() with empty container");
+
+    TreeNode *queryNode = _ceiling(root, key);
+    if (queryNode == TreeNode::NIL)
+        throw std::out_of_range("Argument to ceiling() is too large");
+    else
+        return queryNode->p.first;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+const key_t &RedBlackTree<key_t, value_t, Compare>::_rankSelect(TreeNode *node, int rank) const
+{
+    if (node == TreeNode::NIL)
+        throw std::logic_error("Rank select did not find key matching query rank");
+
+    size_t leftSize = node->left->sz;
+    if (rank < leftSize)
+        return _rankSelect(node->left, rank);
+    else if (rank > leftSize)
+        return _rankSelect(node->right, rank - leftSize - 1);
+    else
+        return node->p.first;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+key_t RedBlackTree<key_t, value_t, Compare>::rankSelect(int rank)
+{
+    if (empty())
+        throw std::out_of_range("Invalid call to rankSelect() with empty container");
+    if (rank < 0 || rank >= size())
+        throw std::out_of_range("Argument to rankSelect() is invalid");
+
+    key_t queryKey = _rankSelect(root, rank); // Defensive copy
+    return queryKey;
+}
+
+/**
+ * Range search
+ */
+
+std::vector<key_t> keys()
+{
+}
+
+std::vector<key_t> keys(const key_t &low, const key_t &high)
+{
 }
 
 /**
@@ -200,7 +404,7 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
 
     // Size update
     newNode->sz = node->sz;
-    node->sz = 1 + size(node->left) + size(node->right);
+    node->sz = 1 + nodeSize(node->left) + nodeSize(node->right);
     return newNode;
 }
 
@@ -213,7 +417,7 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
 
     // Size update
     newNode->sz = node->sz;
-    node->sz = 1 + size(node->left) + size(node->right);
+    node->sz = 1 + nodeSize(node->left) + nodeSize(node->right);
     return newNode;
 }
 
@@ -255,7 +459,7 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
     if (node->left->color == TreeNode::RED && node->right->color == TreeNode::RED)
         flipColor(node);
 
-    node->sz = 1 + size(node->left) + size(node->right);
+    node->sz = 1 + nodeSize(node->left) + nodeSize(node->right);
     return node;
 }
 
@@ -314,7 +518,7 @@ typename RedBlackTree<key_t, value_t, Compare>::TreeNode *RedBlackTree<key_t, va
     // Maintain red-black scheme
     node = rbFix(node);
 
-    node->sz = 1 + size(node->left) + size(node->right);
+    node->sz = 1 + nodeSize(node->left) + nodeSize(node->right);
     return node;
 }
 
@@ -414,9 +618,9 @@ template <typename key_t, typename value_t, typename Compare>
 void RedBlackTree<key_t, value_t, Compare>::erase(const key_t &key)
 {
     if (root == TreeNode::NIL)
-        throw std::out_of_range("Cannot erase from empty container");
+        throw std::out_of_range("Invalid erase from empty container");
     if (!contains(key))
-        throw std::out_of_range("Key is not in the container");
+        throw std::out_of_range("Erase query key not found");
 
     if (root->left->color == TreeNode::BLACK && root->right->color == TreeNode::BLACK)
         root->color = TreeNode::RED;
@@ -432,7 +636,7 @@ template <typename key_t, typename value_t, typename Compare>
 std::string RedBlackTree<key_t, value_t, Compare>::serialize(const std::function<std::string(const key_t &)> &objToString, const std::string &delim, const std::string &nilStr) const
 {
     if (empty())
-        throw std::out_of_range("Cannot serialize empty tree");
+        throw std::out_of_range("Invalid serialization of empty container");
 
     // Reserve space: there will be 3 / 8 * size nil nodes on average.
     // Reserve 1 additional byte for the null character.
@@ -474,6 +678,9 @@ std::string RedBlackTree<key_t, value_t, Compare>::serialize(const std::function
 template <typename key_t, typename value_t, typename Compare>
 size_t RedBlackTree<key_t, value_t, Compare>::depth() const
 {
+    if (empty())
+        throw std::out_of_range("Invalid depth query with empty container");
+
     std::deque<TreeNode *> nodeQueue;
     std::deque<size_t> depthQueue;
 
