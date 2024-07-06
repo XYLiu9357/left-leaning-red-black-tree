@@ -53,6 +53,12 @@ constexpr unsigned int RAND_GEN_SEED = 1;
 const unsigned int STRESS_TEST_LG2 = lg2(STRESS_TEST_SAMPLE_COUNT);
 
 /**
+ * Note: the pseudorandom generator starts producing repeated keys
+ * if STRESS_TEST_SAMPLE_COUN > 100,000, which invalidate some of
+ * the unit tests.
+ */
+
+/**
  * Tree operations: search, insert, delete, copy tree
  */
 
@@ -481,4 +487,155 @@ TEST(RBTreeSymbolTableOps, FloorCeilingSelectLongString)
     EXPECT_EQ(tree[8], "eight");
     EXPECT_EQ(tree[10], "ten");
     EXPECT_EQ(tree[14], "fourteen");
+}
+
+TEST(RBTreeSymbolTableOps, IteratorIntInt)
+{
+    RedBlackTree<int, int> tree1;
+    RedBlackTree<int, int> tree2;
+
+    for (int i = 0; i < 20; i++)
+        tree1[i] = 20 - i;
+
+    for (std::pair<int, int> p : tree1)
+        tree2.insert(p);
+
+    for (int i = 0; i < 20; i++)
+        tree1.erase(19 - i);
+
+    EXPECT_TRUE(tree1.empty());
+    EXPECT_TRUE(tree1.size() == 0);
+    EXPECT_TRUE(tree2.size() == 20);
+
+    int counter = 0;
+    for (std::pair<int, int> p : tree2)
+    {
+        EXPECT_EQ(p.first, counter);
+        EXPECT_EQ(p.second, 20 - p.first);
+        EXPECT_EQ(tree2.find(counter)->second, 20 - counter);
+        counter++;
+    }
+}
+
+/**
+ * Symbol table operations stress test
+ */
+
+struct KeyStruct
+{
+    std::string strField;
+    int intField;
+    double doubleField;
+
+    KeyStruct() {}
+    KeyStruct(const std::string &str, int i, double d) : strField(str), intField(i), doubleField(d) {}
+};
+
+class ValueClass
+{
+public:
+    std::vector<int> vecField;
+    std::string strField;
+    int intField;
+    double doubleField;
+
+    ValueClass() {}
+    ValueClass(const std::vector<int> &vec, const std::string &str, int i, double d)
+        : vecField(vec), strField(str), intField(i), doubleField(d) {}
+};
+
+// Comparator
+struct KeyStructComparator
+{
+    bool operator()(const KeyStruct &lhs, const KeyStruct &rhs) const
+    {
+        // Sort based on integer field
+        if (lhs.intField != rhs.intField)
+            return lhs.intField < rhs.intField;
+        if (lhs.strField != rhs.strField)
+            return lhs.strField < rhs.strField;
+        return lhs.doubleField < rhs.doubleField;
+    }
+};
+
+// Test suite definition
+class RBTreeSymbolTableOpsStressTest : public ::testing::Test
+{
+public:
+    void SetUp() override
+    {
+        // Insert a large number of key-value pairs into the tree
+        for (int i = 0; i < STRESS_TEST_SAMPLE_COUNT; ++i)
+        {
+            KeyStruct key("Key" + std::to_string(i), i, static_cast<double>(i));
+            ValueClass value({i, i + 1, i + 2}, "Value" + std::to_string(i), i, static_cast<double>(i));
+            tree[key] = value;
+        }
+    }
+
+    RedBlackTree<KeyStruct, ValueClass, KeyStructComparator> tree;
+};
+
+TEST_F(RBTreeSymbolTableOpsStressTest, DepthCheck)
+{
+    EXPECT_TRUE(tree.depth() <= STRESS_TEST_LG2 + STRESS_TEST_LG2); // Depth <= 2lgN
+}
+
+TEST_F(RBTreeSymbolTableOpsStressTest, RankOperation)
+{
+    for (int i = 0; i < STRESS_TEST_SAMPLE_COUNT; ++i)
+    {
+        KeyStruct key("Key" + std::to_string(i), i, static_cast<double>(i));
+        EXPECT_EQ(tree.rank(key), i);
+    }
+}
+
+TEST_F(RBTreeSymbolTableOpsStressTest, MinOperation)
+{
+    EXPECT_EQ(tree.min().intField, 0);
+}
+
+TEST_F(RBTreeSymbolTableOpsStressTest, MaxOperation)
+{
+    EXPECT_EQ(tree.max().intField, STRESS_TEST_SAMPLE_COUNT - 1);
+}
+
+TEST_F(RBTreeSymbolTableOpsStressTest, FloorOperation)
+{
+    KeyStruct key("Key5000", 5000, 5000.0);
+    EXPECT_EQ(tree.floor(key).intField, 5000);
+}
+
+TEST_F(RBTreeSymbolTableOpsStressTest, CeilingOperation)
+{
+    KeyStruct key("Key5000", 5000, 5000.0);
+    EXPECT_EQ(tree.ceiling(key).intField, 5000);
+}
+
+TEST_F(RBTreeSymbolTableOpsStressTest, RankSelectOperation)
+{
+    EXPECT_EQ(tree.rankSelect(5000).intField, 5000);
+}
+
+TEST_F(RBTreeSymbolTableOpsStressTest, ForEachIteration)
+{
+    int counter = 0;
+    for (auto &pair : tree)
+    {
+        EXPECT_EQ(pair.first.intField, counter);
+        EXPECT_EQ(pair.second.intField, counter);
+        ++counter;
+    }
+}
+
+TEST_F(RBTreeSymbolTableOpsStressTest, FindOperation)
+{
+    for (int i = 0; i < STRESS_TEST_SAMPLE_COUNT; ++i)
+    {
+        KeyStruct key("Key" + std::to_string(i), i, static_cast<double>(i));
+        auto it = tree.find(key);
+        ASSERT_NE(it, tree.end()); // Catch nasty test failures
+        EXPECT_EQ(it->first.intField, i);
+        EXPECT_EQ(it->second.intField, i);
+    }
 }

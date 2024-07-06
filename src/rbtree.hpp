@@ -148,27 +148,26 @@ public:
     ~RedBlackTree();
 
     /**
-     * Iterator
+     * Inorder iterator
      */
 private:
     class Iterator
     {
-    private:
-        TreeNode *cur;
+    public:
         std::deque<TreeNode *> nodeStack;
 
-    public:
-        Iterator();
-        key_t &operator*();
-        bool operator==(iterator that);
-        bool operator!=(iterator that);
-        void operator++();
+        Iterator(const RedBlackTree<key_t, value_t, Compare> &tree);
+        std::pair<key_t, value_t> &operator*();
+        std::pair<key_t, value_t> *operator->();
+        bool operator==(Iterator that) const;
+        bool operator!=(Iterator that) const;
+        std::pair<key_t, value_t> &operator++();
     };
 
 public:
     Iterator begin();
     Iterator end();
-    Iterator find(key_t key);
+    Iterator find(const key_t &key);
 };
 
 #include "rbtree.ipp"

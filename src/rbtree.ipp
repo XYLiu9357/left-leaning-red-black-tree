@@ -116,7 +116,7 @@ bool RedBlackTree<key_t, value_t, Compare>::treeEqual(TreeNode *node1, TreeNode 
     return nodeEquality && treeEqual(node1->left, node2->left) && treeEqual(node1->right, node2->right);
 }
 template <typename key_t, typename value_t, typename Compare>
-typename RedBlackTree<key_t, value_t, Compare>::RedBlackTree &RedBlackTree<key_t, value_t, Compare>::operator=(const RedBlackTree &that)
+RedBlackTree<key_t, value_t, Compare> &RedBlackTree<key_t, value_t, Compare>::operator=(const RedBlackTree &that)
 {
     // Copy and swap
     RedBlackTree<key_t, value_t> temp(that);
@@ -574,6 +574,111 @@ void RedBlackTree<key_t, value_t, Compare>::erase(const key_t &key)
 
     if (!empty())
         root->color = TreeNode::BLACK;
+}
+
+/**
+ * Inorder iterator
+ */
+
+template <typename key_t, typename value_t, typename Compare>
+RedBlackTree<key_t, value_t, Compare>::Iterator::Iterator(const RedBlackTree<key_t, value_t, Compare> &tree)
+{
+    TreeNode *temp = tree.root;
+    while (temp)
+    {
+        nodeStack.push_front(temp);
+        temp = temp->left;
+    }
+}
+
+template <typename key_t, typename value_t, typename Compare>
+std::pair<key_t, value_t> &RedBlackTree<key_t, value_t, Compare>::Iterator::operator*()
+{
+    return nodeStack.front()->p;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+std::pair<key_t, value_t> *RedBlackTree<key_t, value_t, Compare>::Iterator::operator->()
+{
+    return &(nodeStack.front()->p);
+}
+
+template <typename key_t, typename value_t, typename Compare>
+bool RedBlackTree<key_t, value_t, Compare>::Iterator::operator==(Iterator that) const
+{
+    if (this->nodeStack.empty() && that.nodeStack.empty())
+        return true;
+    else if (this->nodeStack.empty() || that.nodeStack.empty())
+        return false;
+    return this->nodeStack.front() == that.nodeStack.front();
+}
+
+template <typename key_t, typename value_t, typename Compare>
+bool RedBlackTree<key_t, value_t, Compare>::Iterator::operator!=(Iterator that) const
+{
+    return !(*this == that);
+}
+
+template <typename key_t, typename value_t, typename Compare>
+std::pair<key_t, value_t> &RedBlackTree<key_t, value_t, Compare>::Iterator::operator++()
+{
+    if (nodeStack.empty())
+        throw std::out_of_range("Iterator cannot be incremented past the end");
+
+    TreeNode *cur = nodeStack.front();
+    nodeStack.pop_front();
+
+    if (cur->right)
+    {
+        cur = cur->right;
+        while (cur)
+        {
+            nodeStack.push_front(cur);
+            cur = cur->left;
+        }
+    }
+
+    return nodeStack.front()->p;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+typename RedBlackTree<key_t, value_t, Compare>::Iterator RedBlackTree<key_t, value_t, Compare>::begin()
+{
+    Iterator iter(*this);
+    return iter;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+typename RedBlackTree<key_t, value_t, Compare>::Iterator RedBlackTree<key_t, value_t, Compare>::end()
+{
+    Iterator iter(*this);
+    iter.nodeStack.clear();
+    return iter;
+}
+
+template <typename key_t, typename value_t, typename Compare>
+typename RedBlackTree<key_t, value_t, Compare>::Iterator RedBlackTree<key_t, value_t, Compare>::find(const key_t &key)
+{
+    TreeNode *cur = root;
+
+    while (cur)
+    {
+        ComparisonResult cmp = comp(key, cur->p.first);
+        if (cmp == EQUAL_TO)
+        {
+            // Build iterator an clear stack
+            Iterator iter(*this);
+            iter.nodeStack.clear();
+            iter.nodeStack.push_front(cur);
+            return iter;
+        }
+        else if (cmp == LESS_THAN)
+            cur = cur->left;
+        else
+            cur = cur->right;
+    }
+
+    return end();
 }
 
 /**
