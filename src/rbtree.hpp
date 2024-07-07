@@ -7,11 +7,12 @@
 #define RBTREE_H
 
 #include <cstdint>
-#include <deque>
 #include <string>
 #include <initializer_list>
 #include <functional>
 #include <utility>
+
+#include "deque.hpp"
 
 template <typename key_t, typename value_t, typename Compare = std::less<key_t>>
 class RedBlackTree
@@ -152,14 +153,14 @@ private:
     class Iterator
     {
     public:
-        std::deque<TreeNode *> nodeStack;
+        Deque<TreeNode *> nodeStack;
 
         Iterator(const RedBlackTree<key_t, value_t, Compare> &tree);
         std::pair<key_t, value_t> &operator*();
         std::pair<key_t, value_t> *operator->();
         bool operator==(Iterator that) const;
         bool operator!=(Iterator that) const;
-        std::pair<key_t, value_t> &operator++();
+        void operator++();
     };
 
 public:

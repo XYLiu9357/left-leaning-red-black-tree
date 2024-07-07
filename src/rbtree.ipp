@@ -7,13 +7,14 @@
 #define RBTREE_I
 
 #include <cstdint>
-#include <deque>
 #include <functional>
 #include <initializer_list>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <utility>
+
+#include "deque.hpp"
 
 // Custom comparator
 template <typename key_t, typename value_t, typename Compare>
@@ -583,12 +584,16 @@ RedBlackTree<key_t, value_t, Compare>::Iterator::Iterator(const RedBlackTree<key
 template <typename key_t, typename value_t, typename Compare>
 std::pair<key_t, value_t> &RedBlackTree<key_t, value_t, Compare>::Iterator::operator*()
 {
+    if (nodeStack.empty())
+        throw std::out_of_range("Invalid attempt to dereference null iterator");
     return nodeStack.front()->p;
 }
 
 template <typename key_t, typename value_t, typename Compare>
 std::pair<key_t, value_t> *RedBlackTree<key_t, value_t, Compare>::Iterator::operator->()
 {
+    if (nodeStack.empty())
+        throw std::out_of_range("Invalid attempt access pointer with null iterator");
     return &(nodeStack.front()->p);
 }
 
@@ -609,13 +614,12 @@ bool RedBlackTree<key_t, value_t, Compare>::Iterator::operator!=(Iterator that) 
 }
 
 template <typename key_t, typename value_t, typename Compare>
-std::pair<key_t, value_t> &RedBlackTree<key_t, value_t, Compare>::Iterator::operator++()
+void RedBlackTree<key_t, value_t, Compare>::Iterator::operator++()
 {
     if (nodeStack.empty())
         throw std::out_of_range("Iterator cannot be incremented past the end");
 
-    TreeNode *cur = nodeStack.front();
-    nodeStack.pop_front();
+    TreeNode *cur = nodeStack.pop_front();
 
     if (cur->right)
     {
@@ -626,8 +630,6 @@ std::pair<key_t, value_t> &RedBlackTree<key_t, value_t, Compare>::Iterator::oper
             cur = cur->left;
         }
     }
-
-    return nodeStack.front()->p;
 }
 
 template <typename key_t, typename value_t, typename Compare>
@@ -690,7 +692,7 @@ std::string RedBlackTree<key_t, value_t, Compare>::serialize(const std::function
     serializedTree.reserve(requestSize);
 
     // Preorder DFS to serialize tree
-    std::deque<const TreeNode *> nodeStack;
+    Deque<const TreeNode *> nodeStack;
     TreeNode const *cur;
     TreeNode const *curLeft;
     TreeNode const *curRight;
@@ -698,8 +700,7 @@ std::string RedBlackTree<key_t, value_t, Compare>::serialize(const std::function
 
     while (nodeStack.size() > 0)
     {
-        cur = nodeStack.back();
-        nodeStack.pop_back();
+        cur = nodeStack.pop_back();
         curLeft = cur->left;
         curRight = cur->right;
 
@@ -722,8 +723,8 @@ size_t RedBlackTree<key_t, value_t, Compare>::depth() const
     if (empty())
         return 0;
 
-    std::deque<TreeNode *> nodeQueue;
-    std::deque<size_t> depthQueue;
+    Deque<TreeNode *> nodeQueue;
+    Deque<size_t> depthQueue;
 
     nodeQueue.push_back(root);
     depthQueue.push_back(1);
@@ -732,10 +733,8 @@ size_t RedBlackTree<key_t, value_t, Compare>::depth() const
     // Use BFS to find depth of the tree
     while (!nodeQueue.empty())
     {
-        TreeNode *cur = nodeQueue.front();
-        size_t curDepth = depthQueue.front();
-        nodeQueue.pop_front();
-        depthQueue.pop_front();
+        TreeNode *cur = nodeQueue.pop_front();
+        size_t curDepth = depthQueue.pop_front();
 
         maxDepth = curDepth > maxDepth ? curDepth : maxDepth;
 
