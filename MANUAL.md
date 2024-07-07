@@ -1,6 +1,8 @@
 # Left-leaning Red-black tree API
 
-This document contains a full collection of descriptions for all public functions in the `RedBlackTree` class. For more information, see [README.md](README.md).
+This document contains a full collection of descriptions for all public functions in the `RedBlackTree` class. The files [rbtree.hpp](src/rbtree.hpp) and [rbtree.ipp](src/rbtree.ipp) contains the interface and implementation of the container, and [deque.hpp](src/deque.hpp) contains a light-weight double-ended queue for some of `RedBlackTree`'s operations.
+
+For more general information about the class, see [README.md](README.md).
 
 ## Constructors
 

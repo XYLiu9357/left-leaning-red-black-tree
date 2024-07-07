@@ -36,9 +36,9 @@ Make sure these tools and versions are properly installed and configured in your
 
 To use the `RedBlackTree` class in your project:
 
-1. Dependencies: ensure [rbtree.hpp](src/rbtree.hpp), [rbtree.ipp](src/rbtree.ipp), and [deque.hpp](src/deque.hpp) are present in the same directory
+1. Dependencies: ensure [rbtree.hpp](src/rbtree.hpp), [rbtree.ipp](src/rbtree.ipp), and [deque.hpp](src/deque.hpp) are present and under the same directory
 2. Include API Header: include the header by `#include "rbtree.hpp"`
-3. Adjust your build tool of choice: For an example, refer to `CMakeLists.txt`.
+3. Adjust your build tool of choice if needed: refer to `CMakeLists.txt` for an example.
 
 ### API Manual
 

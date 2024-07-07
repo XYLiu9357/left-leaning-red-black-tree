@@ -7,9 +7,9 @@
 #define RBTREE_H
 
 #include <cstdint>
-#include <string>
-#include <initializer_list>
 #include <functional>
+#include <initializer_list>
+#include <string>
 #include <utility>
 
 #include "deque.hpp"
