@@ -8,7 +8,8 @@
 #include <random>
 #include <iostream>
 
-#include "rbtree.hpp"
+#include "map.hpp"
+#include "set.hpp"
 
 // Fast 32-bit integer log2 calculation from Bit Twiddling Hacks
 // http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogLookup
@@ -62,9 +63,9 @@ const unsigned int STRESS_TEST_LG2 = lg2(STRESS_TEST_SAMPLE_COUNT);
  * Tree operations: search, insert, delete, copy tree
  */
 
-TEST(RBTreeOperations, EmptyTree)
+TEST(MapOperations, EmptyTree)
 {
-    RedBlackTree<int, int> tree;
+    Map<int, int> tree;
     EXPECT_TRUE(tree.empty());
     EXPECT_EQ(tree.size(), 0);
     EXPECT_THROW(tree.at(1), std::out_of_range);
@@ -77,9 +78,9 @@ TEST(RBTreeOperations, EmptyTree)
     EXPECT_EQ(tree.depth(), 0);
 }
 
-TEST(RBTreeOperations, Insert7Integers)
+TEST(MapOperations, Insert7Integers)
 {
-    RedBlackTree<int, int> tree;
+    Map<int, int> tree;
     tree.insert(std::pair<int, int>{3, 3});
     tree.insert(std::pair<int, int>{1, 1});
     tree.insert(std::pair<int, int>{5, 5});
@@ -98,9 +99,9 @@ TEST(RBTreeOperations, Insert7Integers)
     EXPECT_EQ(tree[5], 5);
 }
 
-TEST(RBTreeOperations, Initialize7Integers)
+TEST(MapOperations, Initialize7Integers)
 {
-    RedBlackTree<int, int> tree{{3, 3}, {1, 1}, {5, 5}, {0, 0}, {4, 4}, {2, 2}, {6, 6}};
+    Map<int, int> tree{{3, 3}, {1, 1}, {5, 5}, {0, 0}, {4, 4}, {2, 2}, {6, 6}};
 
     EXPECT_TRUE(!tree.empty());
     EXPECT_EQ(tree.size(), 7);
@@ -109,9 +110,9 @@ TEST(RBTreeOperations, Initialize7Integers)
     EXPECT_EQ(tree.at(5), 5);
 }
 
-TEST(RBTreeOperations, SubscriptModify7Integers)
+TEST(MapOperations, SubscriptModify7Integers)
 {
-    RedBlackTree<int, int> tree{{3, 3}, {1, 1}, {5, 5}, {0, 0}, {4, 4}, {2, 2}, {6, 6}};
+    Map<int, int> tree{{3, 3}, {1, 1}, {5, 5}, {0, 0}, {4, 4}, {2, 2}, {6, 6}};
 
     EXPECT_TRUE(!tree.empty());
     EXPECT_EQ(tree.size(), 7);
@@ -124,9 +125,9 @@ TEST(RBTreeOperations, SubscriptModify7Integers)
     EXPECT_EQ(tree[3], 4);
 }
 
-TEST(RBTreeOperations, SerializeAndDepth)
+TEST(MapOperations, SerializeAndDepth)
 {
-    RedBlackTree<int, int> tree{{3, 3}, {1, 1}, {5, 5}, {0, 0}, {4, 4}, {2, 2}, {6, 6}};
+    Map<int, int> tree{{3, 3}, {1, 1}, {5, 5}, {0, 0}, {4, 4}, {2, 2}, {6, 6}};
 
     EXPECT_TRUE(!tree.empty());
     EXPECT_EQ(tree.size(), 7);
@@ -142,9 +143,9 @@ TEST(RBTreeOperations, SerializeAndDepth)
     EXPECT_EQ(tree.depth(), 3);
 }
 
-TEST(RBTreeOperations, WorstCaseInsert7Integers)
+TEST(MapOperations, WorstCaseInsert7Integers)
 {
-    RedBlackTree<int, int> tree{{0, 6}, {1, 5}, {2, 4}, {3, 3}, {4, 2}};
+    Map<int, int> tree{{0, 6}, {1, 5}, {2, 4}, {3, 3}, {4, 2}};
     tree[5] = 1;
     tree[6] = 0;
 
@@ -161,10 +162,10 @@ TEST(RBTreeOperations, WorstCaseInsert7Integers)
     EXPECT_EQ(serializedTree, expected);
 }
 
-TEST(RBTreeOperations, RandomStressTestInsertOnly)
+TEST(MapOperations, RandomStressTestInsertOnly)
 {
     std::mt19937 randGen(RAND_GEN_SEED);
-    RedBlackTree<int, int> tree;
+    Map<int, int> tree;
 
     int randNum = 0;
     int accessKey = 0;
@@ -186,9 +187,9 @@ TEST(RBTreeOperations, RandomStressTestInsertOnly)
     EXPECT_TRUE(tree.depth() <= STRESS_TEST_LG2 + STRESS_TEST_LG2); // Depth <= 2lgN
 }
 
-TEST(RBTreeOperations, WorstCaseStressTestInsertOnly)
+TEST(MapOperations, WorstCaseStressTestInsertOnly)
 {
-    RedBlackTree<int, int> tree;
+    Map<int, int> tree;
     for (int i = 0; i < STRESS_TEST_SAMPLE_COUNT; i++)
         tree.insert({i, i});
 
@@ -196,9 +197,9 @@ TEST(RBTreeOperations, WorstCaseStressTestInsertOnly)
     EXPECT_TRUE(tree.depth() <= STRESS_TEST_LG2 + STRESS_TEST_LG2); // Depth <= 2lgN
 }
 
-TEST(RBTreeOperations, Insert10IntegersWithDelete)
+TEST(MapOperations, Insert10IntegersWithDelete)
 {
-    RedBlackTree<int, int> tree;
+    Map<int, int> tree;
     for (int i = 0; i < 10; i++)
         tree.insert({i, i});
 
@@ -226,10 +227,10 @@ TEST(RBTreeOperations, Insert10IntegersWithDelete)
     EXPECT_THROW(tree.at(1), std::out_of_range);
 }
 
-TEST(RBTreeOperations, RandomStressTestMixedInsertErase)
+TEST(MapOperations, RandomStressTestMixedInsertErase)
 {
     std::mt19937 randGen(RAND_GEN_SEED);
-    RedBlackTree<int, int> tree;
+    Map<int, int> tree;
 
     int randNum = 0;
     int deleteCount = 0;
@@ -259,9 +260,9 @@ TEST(RBTreeOperations, RandomStressTestMixedInsertErase)
     EXPECT_TRUE(depth <= STRESS_TEST_LG2 + STRESS_TEST_LG2); // Depth <= 2lgN
 }
 
-TEST(RBTreeOperations, WorstCaseStressTestMixedInsertErase)
+TEST(MapOperations, WorstCaseStressTestMixedInsertErase)
 {
-    RedBlackTree<int, int> tree;
+    Map<int, int> tree;
     int deleteCount = 0;
     int deleteKey = 0;
     for (int i = 0; i < STRESS_TEST_SAMPLE_COUNT; i++)
@@ -289,9 +290,9 @@ TEST(RBTreeOperations, WorstCaseStressTestMixedInsertErase)
     EXPECT_TRUE(depth <= STRESS_TEST_LG2 + STRESS_TEST_LG2); // Depth <= 2lgN
 }
 
-TEST(RBTreeOperations, MixedOperationsIntInt)
+TEST(MapOperations, MixedOperationsIntInt)
 {
-    RedBlackTree<int, int> tree;
+    Map<int, int> tree;
 
     tree[1] = 10;
     tree[2] = 20;
@@ -310,9 +311,9 @@ TEST(RBTreeOperations, MixedOperationsIntInt)
     EXPECT_FALSE(tree.contains(1));
 }
 
-TEST(RBTreeOperations, MixedOperationsDoubleDouble)
+TEST(MapOperations, MixedOperationsDoubleDouble)
 {
-    RedBlackTree<double, double> tree;
+    Map<double, double> tree;
 
     tree.insert({1.1, 10.1});
     tree.insert({2.2, 20.2});
@@ -330,7 +331,7 @@ TEST(RBTreeOperations, MixedOperationsDoubleDouble)
     EXPECT_FALSE(tree.contains(1.1));
 }
 
-TEST(RBTreeOperations, MixedOperationsStringInt)
+TEST(MapOperations, MixedOperationsStringInt)
 {
     struct Comparator
     {
@@ -338,7 +339,7 @@ TEST(RBTreeOperations, MixedOperationsStringInt)
         bool operator()(const std::string &lhs, const std::string &rhs) const { return lhs < rhs; }
     };
 
-    RedBlackTree<std::string, int, Comparator> tree;
+    Map<std::string, int, Comparator> tree;
 
     for (int i = 0; i < 20; ++i)
         tree["key" + std::to_string(i)] = i;
@@ -373,9 +374,9 @@ struct Student
     }
 };
 
-TEST(RBTreeOperations, MixedOperationsStructInt)
+TEST(MapOperations, MixedOperationsStructInt)
 {
-    RedBlackTree<Student, int> tree;
+    Map<Student, int> tree;
 
     for (int i = 0; i < 20; ++i)
         tree.insert({{"Student" + std::to_string(i), 20 + i, 3.0 + i * 0.1}, i});
@@ -393,14 +394,14 @@ TEST(RBTreeOperations, MixedOperationsStructInt)
     EXPECT_FALSE(tree.contains({"Student5", 25, 3.5}));
 }
 
-TEST(RBTreeOperations, TreeDeepCopyStructInt)
+TEST(MapOperations, TreeDeepCopyStructInt)
 {
-    RedBlackTree<Student, int> tree1;
+    Map<Student, int> tree1;
 
     for (int i = 0; i < 20; ++i)
         tree1.insert({{"Student" + std::to_string(i), 20 + i, 3.0 + i * 0.1}, i});
 
-    RedBlackTree<Student, int> tree2 = tree1;
+    Map<Student, int> tree2 = tree1;
 
     EXPECT_EQ(tree1, tree2);
 
@@ -415,10 +416,10 @@ TEST(RBTreeOperations, TreeDeepCopyStructInt)
     EXPECT_TRUE(tree1 != tree2);
 }
 
-TEST(RBTreeOperations, TreeDeepCopyStressTest)
+TEST(MapOperations, TreeDeepCopyStressTest)
 {
-    RedBlackTree<int, int> tree1;
-    RedBlackTree<int, int> tree2;
+    Map<int, int> tree1;
+    Map<int, int> tree2;
     for (int i = 0; i < STRESS_TEST_SAMPLE_COUNT; i++)
         tree1.insert({i, i});
 
@@ -439,9 +440,9 @@ TEST(RBTreeOperations, TreeDeepCopyStressTest)
  * Symbol table operations
  */
 
-TEST(RBTreeSymbolTableOps, MinMaxRankIntInt)
+TEST(MapSymbolTableOps, MinMaxRankIntInt)
 {
-    RedBlackTree<int, int> tree;
+    Map<int, int> tree;
     tree[5] = 50;
     tree[3] = 30;
     tree[8] = 80;
@@ -464,9 +465,9 @@ TEST(RBTreeSymbolTableOps, MinMaxRankIntInt)
     EXPECT_EQ(tree.max(), 10);
 }
 
-TEST(RBTreeSymbolTableOps, FloorCeilingSelectLongString)
+TEST(MapSymbolTableOps, FloorCeilingSelectLongString)
 {
-    RedBlackTree<long, std::string> tree;
+    Map<long, std::string> tree;
     tree[20] = "twenty";
     tree[18] = "eighteen";
     tree[16] = "sixteen";
@@ -498,10 +499,10 @@ TEST(RBTreeSymbolTableOps, FloorCeilingSelectLongString)
     EXPECT_EQ(tree[14], "fourteen");
 }
 
-TEST(RBTreeSymbolTableOps, IteratorIntInt)
+TEST(MapSymbolTableOps, IteratorIntInt)
 {
-    RedBlackTree<int, int> tree1;
-    RedBlackTree<int, int> tree2;
+    Map<int, int> tree1;
+    Map<int, int> tree2;
 
     for (int i = 0; i < 20; i++)
         tree1[i] = 20 - i;
@@ -568,7 +569,7 @@ struct KeyStructComparator
 };
 
 // Test suite definition
-class RBTreeSymbolTableOpsStressTest : public ::testing::Test
+class MapSymbolTableOpsStressTest : public ::testing::Test
 {
 public:
     void SetUp() override
@@ -582,15 +583,15 @@ public:
         }
     }
 
-    RedBlackTree<KeyStruct, ValueClass, KeyStructComparator> tree;
+    Map<KeyStruct, ValueClass, KeyStructComparator> tree;
 };
 
-TEST_F(RBTreeSymbolTableOpsStressTest, DepthCheck)
+TEST_F(MapSymbolTableOpsStressTest, DepthCheck)
 {
     EXPECT_TRUE(tree.depth() <= STRESS_TEST_LG2 + STRESS_TEST_LG2); // Depth <= 2lgN
 }
 
-TEST_F(RBTreeSymbolTableOpsStressTest, RankOperation)
+TEST_F(MapSymbolTableOpsStressTest, RankOperation)
 {
     for (int i = 0; i < STRESS_TEST_SAMPLE_COUNT; ++i)
     {
@@ -599,34 +600,34 @@ TEST_F(RBTreeSymbolTableOpsStressTest, RankOperation)
     }
 }
 
-TEST_F(RBTreeSymbolTableOpsStressTest, MinOperation)
+TEST_F(MapSymbolTableOpsStressTest, MinOperation)
 {
     EXPECT_EQ(tree.min().intField, 0);
 }
 
-TEST_F(RBTreeSymbolTableOpsStressTest, MaxOperation)
+TEST_F(MapSymbolTableOpsStressTest, MaxOperation)
 {
     EXPECT_EQ(tree.max().intField, STRESS_TEST_SAMPLE_COUNT - 1);
 }
 
-TEST_F(RBTreeSymbolTableOpsStressTest, FloorOperation)
+TEST_F(MapSymbolTableOpsStressTest, FloorOperation)
 {
     KeyStruct key("Key5000", 5000, 5000.0);
     EXPECT_EQ(tree.floor(key).intField, 5000);
 }
 
-TEST_F(RBTreeSymbolTableOpsStressTest, CeilingOperation)
+TEST_F(MapSymbolTableOpsStressTest, CeilingOperation)
 {
     KeyStruct key("Key5000", 5000, 5000.0);
     EXPECT_EQ(tree.ceiling(key).intField, 5000);
 }
 
-TEST_F(RBTreeSymbolTableOpsStressTest, RankSelectOperation)
+TEST_F(MapSymbolTableOpsStressTest, RankSelectOperation)
 {
     EXPECT_EQ(tree.rankSelect(5000).intField, 5000);
 }
 
-TEST_F(RBTreeSymbolTableOpsStressTest, ForEachIteration)
+TEST_F(MapSymbolTableOpsStressTest, ForEachIteration)
 {
     int counter = 0;
     for (auto &pair : tree)
@@ -637,7 +638,7 @@ TEST_F(RBTreeSymbolTableOpsStressTest, ForEachIteration)
     }
 }
 
-TEST_F(RBTreeSymbolTableOpsStressTest, FindOperation)
+TEST_F(MapSymbolTableOpsStressTest, FindOperation)
 {
     for (int i = 0; i < STRESS_TEST_SAMPLE_COUNT; ++i)
     {
@@ -647,4 +648,99 @@ TEST_F(RBTreeSymbolTableOpsStressTest, FindOperation)
         EXPECT_EQ(it->first.intField, i);
         EXPECT_EQ(it->second.intField, i);
     }
+}
+
+TEST(SetOperations, Insert7Integers)
+{
+    Set<int> tree;
+    tree.insert(3);
+    tree.insert(1);
+    tree.insert(5);
+    tree.insert(0);
+    tree.insert(4);
+    tree.insert(2);
+    tree.insert(6);
+
+    EXPECT_TRUE(!tree.empty());
+    EXPECT_EQ(tree.size(), 7);
+    EXPECT_TRUE(tree.contains(2));
+    EXPECT_TRUE(tree.contains(4));
+    EXPECT_TRUE(!tree.contains(8));
+}
+
+TEST(SetOperations, RandomStressTestMixedInsertErase)
+{
+    std::mt19937 randGen(RAND_GEN_SEED);
+    Set<int> set;
+
+    int randNum = 0;
+    int deleteCount = 0;
+    int deleteKey = 0;
+    for (int i = 0; i < STRESS_TEST_SAMPLE_COUNT; ++i)
+    {
+        randNum = randGen();
+        set.insert(randNum);
+
+        // Randomly choose a key to delete
+        if (i % 7 == 0)
+            deleteKey = randNum;
+
+        // Randomly delete a key and check exception on access
+        if (i % STRESS_TEST_STRIDING == 0)
+        {
+            EXPECT_TRUE(set.contains(deleteKey));
+            set.erase(deleteKey);
+            deleteCount++;
+        }
+    }
+
+    EXPECT_EQ(set.size(), STRESS_TEST_SAMPLE_COUNT - deleteCount);
+
+    size_t depth = set.depth();
+    EXPECT_TRUE(depth <= STRESS_TEST_LG2 + STRESS_TEST_LG2); // Depth <= 2lgN
+}
+
+TEST(SetOperations, WorstCaseStressTestMixedInsertErase)
+{
+    Set<int> set;
+    int deleteCount = 0;
+    int deleteKey = 0;
+    for (int i = 0; i < STRESS_TEST_SAMPLE_COUNT; i++)
+    {
+        set.insert(i);
+
+        // Store key i / 4
+        if (i % 7 == 0)
+            deleteKey = i >> 2;
+
+        // Delete key every time i % 96 == 0
+        if (i % STRESS_TEST_STRIDING == 0)
+        {
+            EXPECT_TRUE(set.contains(deleteKey));
+            set.erase(deleteKey);
+            deleteCount++;
+        }
+    }
+
+    EXPECT_EQ(set.size(), STRESS_TEST_SAMPLE_COUNT - deleteCount);
+
+    size_t depth = set.depth();
+    EXPECT_TRUE(depth <= STRESS_TEST_LG2 + STRESS_TEST_LG2); // Depth <= 2lgN
+    EXPECT_TRUE(depth <= STRESS_TEST_LG2 + STRESS_TEST_LG2); // Depth <= 2lgN
+}
+
+TEST(SetOperations, MixedOperationsStructInt)
+{
+    Set<Student> set;
+
+    for (int i = 0; i < 20; ++i)
+        set.insert({"Student" + std::to_string(i), 20 + i, 3.0 + i * 0.1});
+
+    set.insert({"Student10", 30, 4.0});
+    Student student5{"Student5", 25, 3.5};
+    set.erase(student5);
+
+    EXPECT_TRUE(set.contains({"Student10", 30, 4.0}));
+    EXPECT_TRUE(set.contains({"Student15", 35, 4.5}));
+    EXPECT_FALSE(set.contains({"Student5", 25, 3.5}));
 }
