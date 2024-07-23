@@ -1,4 +1,4 @@
-/**rbtree.ipp
+/**set.ipp
  *
  * Implementation for an ordered set container implemented as a
  * left-leaning red black tree template class.

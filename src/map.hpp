@@ -1,4 +1,4 @@
-/**rbtree.hpp
+/**map.hpp
  *
  * Interface for the left-leaning red black tree ordered
  * symbol table template class.

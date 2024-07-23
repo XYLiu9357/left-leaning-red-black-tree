@@ -1,4 +1,4 @@
-/**rbtree.hpp
+/**set.hpp
  *
  * Interface for an ordered set container implemented as a
  * left-leaning red black tree template class.

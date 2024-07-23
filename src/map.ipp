@@ -1,6 +1,7 @@
-/**rbtree.ipp
+/**map.hpp
  *
- * Implementation of the left-leaning red black tree template class.
+ * Implementation for the left-leaning red black tree ordered
+ * symbol table template class.
  */
 
 #ifndef RBMAP_I
