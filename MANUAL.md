@@ -1,4 +1,4 @@
-# LLRB Ordered Map API
+# LLRB Ordered Symbol Table API
 
 This document contains a full collection of descriptions for all public functions in the `Map` class. The files [rbtree.hpp](src/rbtree.hpp) and [rbtree.ipp](src/rbtree.ipp) contains the interface and implementation of the container, and [deque.hpp](src/deque.hpp) contains a light-weight double-ended queue for some of `Map`'s operations. The operations support in `Set` are identical to `Map`, except that the symbol table lookup operations are removed.
 

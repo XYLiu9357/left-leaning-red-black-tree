@@ -1,4 +1,4 @@
-# Left-leaning Red-black tree
+# Left-leaning Red-black Tree
 
 ## Overview
 
