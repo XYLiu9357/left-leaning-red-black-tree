@@ -11,7 +11,6 @@
 #include <functional>
 #include <initializer_list>
 #include <string>
-#include <utility>
 
 #include "deque.hpp"
 
