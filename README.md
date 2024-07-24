@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository contains two unit-tested C++ container class implemented based on a generic _left-leaning red-black tree_ (LLRB). This data structure was initially designed and implemented by <a href="https://sedgewick.io"/>Robert Sedgewick</a> @Department of Computer Science, Princeton University. The original paper can be found [here](https://sedgewick.io/wp-content/themes/sedgewick/papers/2008LLRB.pdf).
+This repository contains two unit-tested C++ container classes implemented based on a generic _left-leaning red-black tree_ (LLRB). This data structure was initially designed and implemented by <a href="https://sedgewick.io"/>Robert Sedgewick</a> @Department of Computer Science, Princeton University. The original paper can be found [here](https://sedgewick.io/wp-content/themes/sedgewick/papers/2008LLRB.pdf).
 
 Traditional symbol table operations like search, insertion, deletion, order statistics are supported by `Map`. $\Theta(\lg N)$ worst-case runtime is guaranteed for search, insertion, and deletion. `Set` supports the equivalent operations for an ordered container but without symbol table lookups.
 
