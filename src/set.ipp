@@ -583,14 +583,14 @@ void Set<key_t, Compare>::Iterator::operator++()
 }
 
 template <typename key_t, typename Compare>
-typename Set<key_t, Compare>::Iterator Set<key_t, Compare>::begin()
+typename Set<key_t, Compare>::Iterator Set<key_t, Compare>::begin() const
 {
     Iterator iter(*this);
     return iter;
 }
 
 template <typename key_t, typename Compare>
-typename Set<key_t, Compare>::Iterator Set<key_t, Compare>::end()
+typename Set<key_t, Compare>::Iterator Set<key_t, Compare>::end() const
 {
     Iterator iter(*this);
     iter.nodeStack.clear();
@@ -598,7 +598,7 @@ typename Set<key_t, Compare>::Iterator Set<key_t, Compare>::end()
 }
 
 template <typename key_t, typename Compare>
-typename Set<key_t, Compare>::Iterator Set<key_t, Compare>::find(const key_t &key)
+typename Set<key_t, Compare>::Iterator Set<key_t, Compare>::find(const key_t &key) const
 {
     TreeNode *cur = root;
 

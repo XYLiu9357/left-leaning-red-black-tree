@@ -160,9 +160,9 @@ private:
     };
 
 public:
-    Iterator begin();
-    Iterator end();
-    Iterator find(const key_t &key);
+    Iterator begin() const;
+    Iterator end() const;
+    Iterator find(const key_t &key) const;
 };
 
 #include "set.ipp"
