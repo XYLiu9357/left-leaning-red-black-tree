@@ -744,3 +744,30 @@ TEST(SetOperations, MixedOperationsStructInt)
     EXPECT_TRUE(set.contains({"Student15", 35, 4.5}));
     EXPECT_FALSE(set.contains({"Student5", 25, 3.5}));
 }
+
+TEST(SetOperations, IteratorInt)
+{
+    Set<int> s1;
+    Set<int> s2;
+
+    for (int i = 0; i < 20; i++)
+        s1.insert(i);
+
+    for (int val : s1)
+        s2.insert(val);
+
+    for (int i = 0; i < 20; i++)
+        s1.erase(19 - i);
+
+    EXPECT_TRUE(s1.empty());
+    EXPECT_TRUE(s1.size() == 0);
+    EXPECT_TRUE(s2.size() == 20);
+
+    int counter = 0;
+    for (int val : s2)
+    {
+        EXPECT_EQ(val, counter);
+        EXPECT_EQ(*(s2.find(counter)), counter);
+        counter++;
+    }
+}
